@@ -49,8 +49,17 @@ public class DoublyLinkedList<T> implements IDoublyLinkedList<T> {
 
     @Override
     public void addFirst(T newElement) {
-        final Node<T> currHead = this.head;
         final Node<T> newHead = new Node<>(newElement);
+
+        if (size == 0) {
+            this.head = newHead;
+            this.tail = newHead;
+            this.size++;
+            return;
+        }
+
+        final Node<T> currHead = this.head;
+
         newHead.prev = null;
         newHead.next = currHead;
         currHead.prev = newHead;
@@ -60,8 +69,17 @@ public class DoublyLinkedList<T> implements IDoublyLinkedList<T> {
 
     @Override
     public void addLast(T newElement) {
-        final Node<T> currTail = this.tail;
         final Node<T> newTail = new Node<>(newElement);
+
+        if (size() == 0) {
+            this.head = newTail;
+            this.tail = newTail;
+            this.size++;
+            return;
+        }
+
+        final Node<T> currTail = this.tail;
+
         currTail.next = newTail;
         newTail.prev = currTail;
         newTail.next = null;
@@ -73,6 +91,14 @@ public class DoublyLinkedList<T> implements IDoublyLinkedList<T> {
     public T popFirst() {
         if (this.isEmpty()) {
             return null;
+        }
+
+        if (this.size == 1) {
+            final Node<T> currHead = this.head;
+            this.head = null;
+            this.tail = null;
+            this.size--;
+            return currHead.data;
         }
 
         final Node<T> currHead = this.head;
@@ -90,6 +116,15 @@ public class DoublyLinkedList<T> implements IDoublyLinkedList<T> {
             return null;
         }
 
+        if (this.size == 1) {
+            final Node<T> currTail = this.tail;
+            this.head = null;
+            this.tail = null;
+            this.size--;
+
+            return currTail.data;
+        }
+
         final Node<T> currTail = this.tail;
         final Node<T> newTail = currTail.prev;
         newTail.next = null;
@@ -102,15 +137,13 @@ public class DoublyLinkedList<T> implements IDoublyLinkedList<T> {
     @Override
     public Node<T> search(T target) {
         Node<T> currNode = this.head;
-        while (true) {
+        while (currNode != null) {
             if (currNode.data.equals(target)) {
                 return currNode;
             }
             currNode = currNode.next;
-            if (currNode == this.tail) {
-                return null;
-            }
         }
+        return null;
     }
 
     @Override
@@ -140,6 +173,16 @@ public class DoublyLinkedList<T> implements IDoublyLinkedList<T> {
     public void searchDelete(T target) {
         final Node<T> targetNode = search(target);
         if (targetNode == null) {
+            return;
+        }
+
+        if (targetNode == this.head) {
+            popFirst();
+            return;
+        }
+
+        if (targetNode == this.tail) {
+            popLast();
             return;
         }
 
