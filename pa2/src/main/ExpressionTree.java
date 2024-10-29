@@ -1,6 +1,6 @@
 /*
- * Name:
- * Student ID #:
+ * Name: 조은기
+ * Student ID #: 2019147029
  */
 
 /*
@@ -14,77 +14,117 @@ import java.util.Stack;
 public class ExpressionTree implements IExpressionTree {
     private Node<String> rootNode;
     private int treeSize;
-    // you may declare additional variables here.
 
-    public ExpressionTree(String[] expression){
+    public ExpressionTree(String[] expression) {
         this.rootNode = null;
         this.treeSize = 0;
-        // implement your constructor here. the default constructor is not required.
+
+        if (expression.length == 0) {
+            return;
+        }
+
+        Stack<String> operatorStack = new Stack<>();
+        Stack<Node<String>> nodeStack = new Stack<>();
+
+        // 중위 표기식을 후위 표기식으로 변환하며 동시에 트리 생성
+        for (String it : expression) {
+            final String operators = "+-*/()";
+            if (!operators.contains(it)) {  // 피연산자인 경우
+                nodeStack.push(new Node<>(it));
+                this.treeSize++;
+            } else if (it.equals("(")) {
+                operatorStack.push(it);
+            } else if (it.equals(")")) {
+                // ')'가 나올 경우 '('를 만날 때까지 연산자를 처리하여 트리 생성
+                if (!operatorStack.isEmpty() && !operatorStack.peek().equals("(")) {
+                    Node<String> rightNode = nodeStack.pop();
+                    Node<String> leftNode = nodeStack.pop();
+                    Node<String> operatorNode = new Node<>(operatorStack.pop());
+                    operatorNode.setLeft(leftNode);
+                    operatorNode.setRight(rightNode);
+                    nodeStack.push(operatorNode);
+                    this.treeSize++;
+                }
+                operatorStack.pop();
+            } else {
+                if (!operatorStack.isEmpty() &&
+                        ((operatorStack.peek().equals("*") || operatorStack.peek().equals("/")) || // higher level operands
+                                (operatorStack.peek().equals("+") || operatorStack.peek().equals("-")) && // same level operands
+                                        (it.equals("+") || it.equals("-")))) {
+                    Node<String> rightNode = nodeStack.pop();
+                    Node<String> leftNode = nodeStack.pop();
+                    Node<String> operatorNode = new Node<>(operatorStack.pop());
+                    operatorNode.setLeft(leftNode);
+                    operatorNode.setRight(rightNode);
+                    nodeStack.push(operatorNode);
+                    this.treeSize++;
+                }
+                operatorStack.push(it);
+            }
+        }
+
+        // 스택에 남아 있는 연산자를 처리
+        if (!operatorStack.isEmpty()) {
+            Node<String> rightNode = nodeStack.pop();
+            Node<String> leftNode = nodeStack.pop();
+            Node<String> operatorNode = new Node<>(operatorStack.pop());
+            operatorNode.setLeft(leftNode);
+            operatorNode.setRight(rightNode);
+            nodeStack.push(operatorNode);
+            this.treeSize++;
+        }
+
+        if (!nodeStack.isEmpty()) {
+            this.rootNode = nodeStack.pop();
+        }
     }
 
-    @Override 
+    @Override
     public int size() {
-        /*
-		 * Input: none
-		 *
-		 * Output: the number of elements in the tree
-		 */
-        return -1;
+        return this.treeSize;
     }
 
-    @Override 
+    @Override
     public Node<String> getRoot() {
-        /*
-		 * Input: none
-		 *
-		 * Output: the root node of the tree
-		 * 
-		 * Does:
-		 *  - return the root node of the tree.
-		 *  - if the tree is empty, return null.
-		 */
-        return null;
+        if (treeSize == 0) {
+            return null;
+        }
+        return rootNode;
     }
 
-    @Override 
+    @Override
     public String infixNotation() {
-        /*
-		 * Input: none
-		 *
-		 * Output: infix notation of the tree
-		 * 
-		 * Does:
-		 *  - return the fully parenthesized infix notation represented by the expression tree.
-         *  - there should be a space between all the values.
-		 */
-        return "";
+        return infixTraversal(rootNode);
+    }
+
+    private String infixTraversal(Node<String> node) {
+        if (node == null) {
+            return "";
+        }
+
+        if (node.getLeft() == null && node.getRight() == null) {
+            return node.getValue();  // 피연산자일 경우 괄호 없이 반환}
+        }
+        return "( " + infixTraversal(node.getLeft()) + " " + node.getValue() + " " + infixTraversal(node.getRight()) + " )";
     }
 
     @Override
     public String prefixNotation() {
-        /*
-		 * Input: none
-		 *
-		 * Output: prefix notation of the tree
-		 * 
-		 * Does:
-		 *  - return the prefix notation represented by the expression tree.
-         *  - there should be a space between all the values.
-		 */
-        return "";
+        return prefixTraversal(rootNode);
+    }
+
+    private String prefixTraversal(Node<String> node) {
+        if (node == null) return "";
+        return node.getValue() + " " + prefixTraversal(node.getLeft()) + prefixTraversal(node.getRight());
     }
 
     @Override
     public String postfixNotation() {
-        /*
-		 * Input: none
-		 *
-		 * Output: postfix notation of the tree
-		 * 
-		 * Does:
-		 *  - return the postfix notation represented by the expression tree.
-         *  - there should be a space between all the values.
-		 */
-        return "";
+        return postfixTraversal(rootNode);
+    }
+
+    private String postfixTraversal(Node<String> node) {
+        if (node == null) return "";
+        return postfixTraversal(node.getLeft()) + postfixTraversal(node.getRight()) + node.getValue() + " ";
     }
 }

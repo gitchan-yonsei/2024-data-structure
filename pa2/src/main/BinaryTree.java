@@ -163,7 +163,7 @@ public class BinaryTree<T> implements IBinaryTree<T> {
         }
 
         // internal node인 경우
-        if (curr.getLeft() != null || curr.getRight() != null) {
+        if (curr.isInternal()) {
             return null;
         }
 
