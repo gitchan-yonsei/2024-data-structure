@@ -25,6 +25,8 @@ public class DoubleHashMap implements IDoubleHashMap {
         this.map = new HashData[N];
         this.N = N;
         // implement your constructor here. the default constructor is not required.
+
+        // Initialize the map with DEFUNCT
         for (int i = 0; i < N; i++) {
             map[i] = new HashData(DEFUNCT, null);
         }
@@ -74,7 +76,7 @@ public class DoubleHashMap implements IDoubleHashMap {
             }
 
             if (currData.getKey() == DEFUNCT) {
-                break;
+                return null;
             }
         }
 
@@ -144,7 +146,7 @@ public class DoubleHashMap implements IDoubleHashMap {
             }
 
             if (currData.getKey() == DEFUNCT) {
-                break;
+                return null;
             }
         }
 
