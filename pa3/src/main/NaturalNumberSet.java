@@ -90,11 +90,6 @@ public class NaturalNumberSet implements INaturalNumberSet {
          *  - if the set is full, do nothing.
          *  - return whether the value is in the set or not after terminating
          */
-        // Already in a set
-        if (contains(val)) {
-            return true;
-        }
-
         if (size == N) {
             return false;
         }
@@ -105,12 +100,17 @@ public class NaturalNumberSet implements INaturalNumberSet {
         for (int j = 0; j < N; j++) {
             final int index = (h1 + j * d) % N;
 
+            if (set[index] == val) {
+                return true;
+            }
+
             if (set[index] == DEFUNCT) {
                 set[index] = val;
                 this.size++;
                 return true;
             }
         }
+
         return false;
     }
 
@@ -157,6 +157,7 @@ public class NaturalNumberSet implements INaturalNumberSet {
          *  - copy elements to the integer array and return it.
          */
         int[] content = new int[size];
+
         int index = 0;
         for (int i = 0; i < N; i++) {
             final int val = set[i];
