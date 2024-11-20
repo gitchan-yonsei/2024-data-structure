@@ -134,33 +134,37 @@ public class SkipList<K> implements ISkipList<K> {
         MetaVar newKey = new MetaVar(key);
         QuadNode curr = head;
 
+        // Traverse to find the correct position
         while (true) {
-            while (curr.right.value.compareTo(newKey) < 0) {
+            while (curr.right != null && curr.right.value.compareTo(newKey) < 0) {
                 curr = curr.right;
             }
 
             if (curr.down != null) {
                 curr = curr.down;
             } else {
-                break; // bottom level까지 이동
+                break; // Reached bottom level
             }
         }
 
-        // Insert node at bottom level
+        // Insert node at the bottom level
         QuadNode newNode = new QuadNode(newKey);
         newNode.right = curr.right;
+        if (curr.right != null) {
+            curr.right.left = newNode;
+        }
         newNode.left = curr;
-        curr.right.left = newNode;
         curr.right = newNode;
 
+        // Handle upper levels
         int level = 1;
         while (coin.toss()) {
             level++;
 
-            // 새로운 레벨 생성
             if (level > levels) {
                 levels++;
 
+                // Create a new top level
                 QuadNode negInf = new QuadNode(NegInf);
                 QuadNode posInf = new QuadNode(PosInf);
 
@@ -186,8 +190,10 @@ public class SkipList<K> implements ISkipList<K> {
             newNode.up = upperNode;
 
             upperNode.right = curr.right;
+            if (curr.right != null) {
+                curr.right.left = upperNode;
+            }
             upperNode.left = curr;
-            curr.right.left = upperNode;
             curr.right = upperNode;
 
             newNode = upperNode;
@@ -210,18 +216,21 @@ public class SkipList<K> implements ISkipList<K> {
         MetaVar target = new MetaVar(key);
         QuadNode curr = head;
 
+        // Traverse to find the node
         while (true) {
-            while (curr.right.value.compareTo(target) < 0) {
+            while (curr.right != null && curr.right.value.compareTo(target) < 0) {
                 curr = curr.right;
             }
 
-            if (curr.right.value.compareTo(target) == 0) {
+            if (curr.right != null && curr.right.value.compareTo(target) == 0) {
                 QuadNode toDelete = curr.right;
 
-                // 모든 레벨에서 노드 제거
+                // Remove the node at all levels
                 while (toDelete != null) {
                     toDelete.left.right = toDelete.right;
-                    toDelete.right.left = toDelete.left;
+                    if (toDelete.right != null) {
+                        toDelete.right.left = toDelete.left;
+                    }
 
                     toDelete = toDelete.up;
                 }
