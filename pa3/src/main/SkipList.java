@@ -89,15 +89,12 @@ public class SkipList<K> implements ISkipList<K> {
         this.coin = coin;
         this.comp = comp;
         this.size = 0;
-        this.levels = 0;
+        this.levels = 1;
 
-        // Initialize the skip list with the top-level head and tail
-        QuadNode negInf = new QuadNode(NegInf);
-        QuadNode posInf = new QuadNode(PosInf);
-        negInf.right = posInf;
-        posInf.left = negInf;
-
-        this.head = negInf;
+        head = new QuadNode(NegInf);
+        QuadNode tail = new QuadNode(PosInf);
+        head.right = tail;
+        tail.left = head;
     }
 
     @Override
@@ -131,72 +128,57 @@ public class SkipList<K> implements ISkipList<K> {
          *  - insert the key in the skiplist.
          *  - if the key is already in this data structure, silently ignore the request.
          */
-        MetaVar newKey = new MetaVar(key);
-        QuadNode curr = head;
+        List<QuadNode> updateList = new ArrayList<>();
+        QuadNode current = head;
 
-        // Traverse to find the correct position
-        while (true) {
-            while (curr.right != null && curr.right.value.compareTo(newKey) < 0) {
-                curr = curr.right;
+        while (current != null) {
+            while (current.right != null && current.right.value.compareTo(new MetaVar(key)) < 0) {
+                current = current.right;
             }
-
-            if (curr.down != null) {
-                curr = curr.down;
-            } else {
-                break; // Reached bottom level
-            }
+            updateList.add(current);
+            current = current.down;
         }
 
-        // Insert node at the bottom level
-        QuadNode newNode = new QuadNode(newKey);
-        newNode.right = curr.right;
-        if (curr.right != null) {
-            curr.right.left = newNode;
+        QuadNode lowerNode = null;
+        boolean insertAbove = true;
+
+        for (int i = updateList.size() - 1; i >= 0 && insertAbove; i--) {
+            QuadNode previous = updateList.get(i);
+            QuadNode newNode = new QuadNode(new MetaVar(key));
+
+            newNode.right = previous.right;
+            if (previous.right != null) previous.right.left = newNode;
+            previous.right = newNode;
+            newNode.left = previous;
+
+            if (lowerNode != null) {
+                newNode.down = lowerNode;
+                lowerNode.up = newNode;
+            }
+
+            lowerNode = newNode;
+            insertAbove = coin.toss();
         }
-        newNode.left = curr;
-        curr.right = newNode;
 
-        // Handle upper levels
-        int level = 1;
-        while (coin.toss()) {
-            level++;
+        if (insertAbove) {
+            levels++;
+            QuadNode newHead = new QuadNode(NegInf);
+            QuadNode newTail = new QuadNode(PosInf);
 
-            if (level > levels) {
-                levels++;
+            newHead.right = newTail;
+            newTail.left = newHead;
 
-                // Create a new top level
-                QuadNode negInf = new QuadNode(NegInf);
-                QuadNode posInf = new QuadNode(PosInf);
+            newHead.down = head;
+            head.up = newHead;
 
-                negInf.right = posInf;
-                posInf.left = negInf;
+            head = newHead;
 
-                negInf.down = head;
-                head.up = negInf;
+            QuadNode newTopNode = new QuadNode(new MetaVar(key));
+            newTopNode.down = lowerNode;
+            lowerNode.up = newTopNode;
 
-                posInf.down = head.right;
-                head.right.up = posInf;
-
-                head = negInf;
-            }
-
-            while (curr.up == null) {
-                curr = curr.left;
-            }
-            curr = curr.up;
-
-            QuadNode upperNode = new QuadNode(newKey);
-            upperNode.down = newNode;
-            newNode.up = upperNode;
-
-            upperNode.right = curr.right;
-            if (curr.right != null) {
-                curr.right.left = upperNode;
-            }
-            upperNode.left = curr;
-            curr.right = upperNode;
-
-            newNode = upperNode;
+            head.right = newTopNode;
+            newTopNode.left = head;
         }
 
         size++;
@@ -213,38 +195,21 @@ public class SkipList<K> implements ISkipList<K> {
          *  - delete the key from the structure.
          *  - if the key is NOT in the structure, ignore the request.
          */
-        MetaVar target = new MetaVar(key);
-        QuadNode curr = head;
+        QuadNode current = head;
 
-        // Traverse to find the node
-        while (true) {
-            while (curr.right != null && curr.right.value.compareTo(target) < 0) {
-                curr = curr.right;
+        while (current != null) {
+            while (current.right != null && current.right.value.compareTo(new MetaVar(key)) < 0) {
+                current = current.right;
             }
-
-            if (curr.right != null && curr.right.value.compareTo(target) == 0) {
-                QuadNode toDelete = curr.right;
-
-                // Remove the node at all levels
-                while (toDelete != null) {
-                    toDelete.left.right = toDelete.right;
-                    if (toDelete.right != null) {
-                        toDelete.right.left = toDelete.left;
-                    }
-
-                    toDelete = toDelete.up;
-                }
-
-                this.size--;
-                return;
+            if (current.right != null && current.right.value.compareTo(new MetaVar(key)) == 0) {
+                QuadNode target = current.right;
+                current.right = target.right;
+                if (target.right != null) target.right.left = current;
             }
-
-            if (curr.down != null) {
-                curr = curr.down;
-            } else {
-                break; // Not found
-            }
+            current = current.down;
         }
+
+        size--;
     }
 
     @Override
@@ -254,24 +219,18 @@ public class SkipList<K> implements ISkipList<K> {
          *
          * Output: whether or not the skip list contains the value
          */
-        MetaVar target = new MetaVar(key);
         QuadNode current = head;
 
-        while (true) {
-            while (current.right.value.compareTo(target) < 0) {
+        while (current != null) {
+            while (current.right != null && current.right.value.compareTo(new MetaVar(key)) < 0) {
                 current = current.right;
             }
-
-            if (current.right.value.compareTo(target) == 0) {
+            if (current.right != null && current.right.value.compareTo(new MetaVar(key)) == 0) {
                 return true;
             }
-
-            if (current.down != null) {
-                current = current.down;
-            } else {
-                return false;
-            }
+            current = current.down;
         }
+        return false;
     }
 
     @Override
@@ -286,22 +245,18 @@ public class SkipList<K> implements ISkipList<K> {
          *  - the list items must be in sorted order.
          *  - note that you can use ArrayList.
          */
-        List<K> result = new ArrayList<>();
+        List<K> entries = new ArrayList<>();
         QuadNode current = head;
 
-        // Go to the bottom level
-        while (current.down != null) {
-            current = current.down;
-        }
+        while (current.down != null) current = current.down;
 
-        // Traverse the bottom level and collect keys
         current = current.right;
-        while (current.value.isInf == 0) { // Skip +inf
-            result.add(current.value.value);
+        while (current.value.isInf == 0) {
+            entries.add(current.value.value);
             current = current.right;
         }
 
-        return result;
+        return entries;
     }
 }
 
