@@ -23,6 +23,10 @@ public class SuffixTries implements ISuffixTries {
          * implement your constructor here. the default constructor is not required.
          * construct the suffix trie from a given string.
          */
+        if (s == null || s.isEmpty()) {
+            return;
+        }
+
         for (int i = 0; i < s.length(); i++) {
             addSuffix(i);
         }
@@ -49,6 +53,10 @@ public class SuffixTries implements ISuffixTries {
          *
          * Output: whether or not the given pattern is a suffix of the string
          */
+        if (pattern.length() > s.length()) {
+            return false;
+        }
+
         TrieNode current = root;
 
         for (int i = 0; i < pattern.length(); i++) {
