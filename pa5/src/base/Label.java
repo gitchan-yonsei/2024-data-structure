@@ -1,0 +1,1 @@
+enum Label {UNEXPLORED, DISCOVERY}
