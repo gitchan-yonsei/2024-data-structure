@@ -1,6 +1,6 @@
 /*
- * Name:
- * Student ID #:
+ * Name: 조은기
+ * Student ID #: 2019147029
  */
 
 import java.util.ArrayList;
